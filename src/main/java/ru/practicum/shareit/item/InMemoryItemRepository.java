@@ -13,12 +13,12 @@ public class InMemoryItemRepository implements ItemRepository {
     private Long databaseId = 0L;
 
     @Override
-    public Optional<Item> getById(Long id) {
+    public Optional<Item> findById(Long id) {
         return Optional.ofNullable(items.get(id));
     }
 
     @Override
-    public List<Item> getOwnerItems(Long userId) {
+    public List<Item> findByOwner(Long userId) {
         return items.values()
                 .stream()
                 .filter(item -> item.getOwnerId().equals(userId))
@@ -42,19 +42,18 @@ public class InMemoryItemRepository implements ItemRepository {
     }
 
     @Override
-    public List<Item> findItemsToRentByText(String text) {
+    public List<Item> findAvailableToRentByText(String text) {
         if (text == null || text.isBlank()) {
             return Collections.emptyList();
-        } else {
-            return items.values()
-                    .stream()
-                    .filter(item -> {
-                        String name = item.getName().toLowerCase();
-                        String description = item.getDescription().toLowerCase();
-                        return item.isAvailable() && (name.contains(text) || description.contains(text));
-                    })
-                    .collect(Collectors.toList());
         }
+        return items.values()
+                .stream()
+                .filter(item -> {
+                    String name = item.getName().toLowerCase();
+                    String description = item.getDescription().toLowerCase();
+                    return item.isAvailable() && (name.contains(text) || description.contains(text));
+                })
+                .collect(Collectors.toList());
 
     }
 

@@ -11,12 +11,12 @@ public class InMemoryUserRepository implements UserRepository {
     private long databaseId = 0L;
 
     @Override
-    public Optional<User> getById(Long id) {
+    public Optional<User> findById(Long id) {
         return Optional.ofNullable(users.get(id));
     }
 
     @Override
-    public Optional<User> getByEmail(String email) {
+    public Optional<User> findByEmail(String email) {
         User userDb = users.values()
                 .stream()
                 .filter(user -> user.getEmail().equals(email))
@@ -26,7 +26,7 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public List<User> getAll() {
+    public List<User> findAll() {
         return new ArrayList<>(users.values());
     }
 

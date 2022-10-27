@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ItemRepository {
-    Optional<Item> getById(Long id);
+    Optional<Item> findById(Long id);
 
-    List<Item> getOwnerItems(Long userId);
+    List<Item> findByOwner(Long userId);
 
     Item add(Item item);
 
     Item update(Item item);
 
-    List<Item> findItemsToRentByText(String text);
+    List<Item> findAvailableToRentByText(String text);
 }

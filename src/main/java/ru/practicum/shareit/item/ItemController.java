@@ -22,18 +22,18 @@ public class ItemController {
     @GetMapping("/{itemId}")
     public ItemDto getItem(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
                            @PathVariable Long itemId) {
-        return itemService.getItem(userId, itemId);
+        return itemService.get(userId, itemId);
     }
 
     @GetMapping
     public List<ItemDto> getOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId) {
-        return itemService.getOwnerItems(userId);
+        return itemService.getByOwner(userId);
     }
 
     @PostMapping
     public ItemDto createNewItem(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
                                  @Valid @RequestBody ItemDto itemDto) {
-        return itemService.createNewItem(userId, itemDto);
+        return itemService.create(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
@@ -42,13 +42,13 @@ public class ItemController {
                               @RequestBody ItemDto itemDto) {
         itemDto.setId(itemId);
 
-        return itemService.updateItem(userId, itemDto);
+        return itemService.update(userId, itemDto);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> findItemsToRentByText(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
+    public List<ItemDto> getItemsAvailableToRentByText(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
                                                @RequestParam String text) {
-        return itemService.findItemsToRentByText(userId, text.toLowerCase());
+        return itemService.getAvailableToRentByText(userId, text.toLowerCase());
     }
 
 }

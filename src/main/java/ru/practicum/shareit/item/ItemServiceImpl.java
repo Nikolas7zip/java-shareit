@@ -25,32 +25,31 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto getItem(Long userId, Long id) {
+    public ItemDto get(Long userId, Long id) {
         throwIfUserNotFound(userId);
-        Optional<Item> itemOptional = itemRepository.getById(id);
-        if (itemOptional.isEmpty()) {
-            throw new EntityNotFoundException("Item id=" + id + " not found");
-        }
+        Item item = itemRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Item id=" + id + " not found")
+        );
 
-        return ItemMapper.mapToItemDto(itemOptional.get());
+        return ItemMapper.mapToItemDto(item);
     }
 
     @Override
-    public List<ItemDto> getOwnerItems(Long userId) {
+    public List<ItemDto> getByOwner(Long userId) {
         throwIfUserNotFound(userId);
 
-        return ItemMapper.mapToItemDto(itemRepository.getOwnerItems(userId));
+        return ItemMapper.mapToItemDto(itemRepository.findByOwner(userId));
     }
 
     @Override
-    public List<ItemDto> findItemsToRentByText(Long userId, String text) {
+    public List<ItemDto> getAvailableToRentByText(Long userId, String text) {
         throwIfUserNotFound(userId);
 
-        return ItemMapper.mapToItemDto(itemRepository.findItemsToRentByText(text));
+        return ItemMapper.mapToItemDto(itemRepository.findAvailableToRentByText(text));
     }
 
     @Override
-    public ItemDto createNewItem(Long userId, ItemDto itemDto) {
+    public ItemDto create(Long userId, ItemDto itemDto) {
         throwIfUserNotFound(userId);
         Item item = itemRepository.add(ItemMapper.mapToItem(itemDto, userId));
         log.info("Created " + item);
@@ -59,9 +58,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto updateItem(Long userId, ItemDto itemDto) {
+    public ItemDto update(Long userId, ItemDto itemDto) {
         throwIfUserIsNotItemOwner(userId, itemDto.getId());
-        ItemDto databaseItemDto = getItem(userId, itemDto.getId());
+        ItemDto databaseItemDto = get(userId, itemDto.getId());
         if (itemDto.getName() != null) {
             databaseItemDto.setName(itemDto.getName());
         }
@@ -81,13 +80,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void throwIfUserNotFound(Long userId) {
-        if (userRepository.getById(userId).isEmpty()) {
-            throw new EntityNotFoundException("User id=" + userId + " not found");
-        }
+        userRepository.findById(userId).orElseThrow(() ->
+                new EntityNotFoundException("User id=" + userId + " not found")
+        );
     }
 
     private void throwIfUserIsNotItemOwner(Long userId, Long itemId) {
-        Optional<Item> itemOptional = itemRepository.getById(itemId);
+        Optional<Item> itemOptional = itemRepository.findById(itemId);
         if (itemOptional.isEmpty() || !itemOptional.get().getOwnerId().equals(userId)) {
             throw new EntityNotFoundException("Item id=" + itemId + " not found");
         }

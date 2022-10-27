@@ -47,7 +47,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleUnexpectedError(final Throwable ex) {
-        log.warn(ex.toString());
+        log.error("Error 500, {}", ex.getMessage(), ex);
 
         return new ErrorResponse("Unexpected error occurred: check JSON data");
     }

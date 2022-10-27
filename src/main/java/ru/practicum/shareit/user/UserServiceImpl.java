@@ -8,7 +8,6 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -21,24 +20,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUser(Long id) {
-        Optional<User> userOptional = userRepository.getById(id);
-        if (userOptional.isEmpty()) {
-            throw new EntityNotFoundException("User id=" + id + " not found");
-        }
+    public UserDto get(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("User id=" + id + " not found")
+        );
 
-        return UserMapper.mapToUserDto(userOptional.get());
+        return UserMapper.mapToUserDto(user);
     }
 
     @Override
-    public List<UserDto> getAllUsers() {
-        List<User> users = userRepository.getAll();
+    public List<UserDto> getAll() {
+        List<User> users = userRepository.findAll();
 
         return UserMapper.mapToUserDto(users);
     }
 
     @Override
-    public UserDto createNewUser(UserDto userDto) {
+    public UserDto create(UserDto userDto) {
         throwIfEmailDuplicate(userDto.getEmail());
         User user = userRepository.add(UserMapper.mapToUser(userDto));
         log.info("Created " + user);
@@ -47,8 +45,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto updateUser(UserDto userDto) {
-        UserDto databaseUserDto = getUser(userDto.getId());
+    public UserDto update(UserDto userDto) {
+        UserDto databaseUserDto = get(userDto.getId());
         if (userDto.getName() != null) {
             databaseUserDto.setName(userDto.getName());
         }
@@ -65,14 +63,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(Long id) {
-        getUser(id);
+    public void delete(Long id) {
+        get(id);
         userRepository.delete(id);
         log.info("Deleted user id=" + id);
     }
 
     private void throwIfEmailDuplicate(String email) {
-        if (userRepository.getByEmail(email).isPresent()) {
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Duplicate email " + email);
         }
     }
