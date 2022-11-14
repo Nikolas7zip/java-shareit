@@ -3,14 +3,17 @@ package ru.practicum.shareit.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
+
 
 import java.util.List;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
@@ -21,9 +24,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto get(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() ->
-                new EntityNotFoundException("User id=" + id + " not found")
-        );
+        User user = userRepository.findById(id)
+                                  .orElseThrow(() -> new EntityNotFoundException(User.class, id));
 
         return UserMapper.mapToUserDto(user);
     }
@@ -35,43 +37,38 @@ public class UserServiceImpl implements UserService {
         return UserMapper.mapToUserDto(users);
     }
 
+    @Transactional
     @Override
     public UserDto create(UserDto userDto) {
-        throwIfEmailDuplicate(userDto.getEmail());
-        User user = userRepository.add(UserMapper.mapToUser(userDto));
+        User user = userRepository.save(UserMapper.mapToUser(userDto));
         log.info("Created " + user);
 
         return UserMapper.mapToUserDto(user);
     }
 
+    @Transactional
     @Override
     public UserDto update(UserDto userDto) {
         UserDto databaseUserDto = get(userDto.getId());
+
         if (userDto.getName() != null) {
             databaseUserDto.setName(userDto.getName());
         }
 
         if (userDto.getEmail() != null) {
-            throwIfEmailDuplicate(userDto.getEmail());
             databaseUserDto.setEmail(userDto.getEmail());
         }
 
-        User user = userRepository.update(UserMapper.mapToUser(databaseUserDto));
+        User user = userRepository.save(UserMapper.mapToUser(databaseUserDto));
         log.info("Updated " + user);
 
         return UserMapper.mapToUserDto(user);
     }
 
+    @Transactional
     @Override
     public void delete(Long id) {
-        get(id);
-        userRepository.delete(id);
+        userRepository.deleteById(id);
         log.info("Deleted user id=" + id);
-    }
-
-    private void throwIfEmailDuplicate(String email) {
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("Duplicate email " + email);
-        }
     }
 }

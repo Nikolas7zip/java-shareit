@@ -2,6 +2,8 @@ package ru.practicum.shareit.item;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.comment.CommentDto;
+import ru.practicum.shareit.item.comment.CommentOutput;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
@@ -45,9 +47,16 @@ public class ItemController {
         return itemService.update(userId, itemDto);
     }
 
+    @PostMapping("/{itemId}/comment")
+    public CommentOutput createNewComment(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
+                                          @PathVariable Long itemId,
+                                          @Valid @RequestBody CommentDto commentDto) {
+        return itemService.createComment(userId, itemId, commentDto);
+    }
+
     @GetMapping("/search")
     public List<ItemDto> getItemsAvailableToRentByText(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-                                               @RequestParam String text) {
+                                                       @RequestParam String text) {
         return itemService.getAvailableToRentByText(userId, text.toLowerCase());
     }
 

@@ -8,11 +8,11 @@ import java.util.List;
 
 public class UserMapper {
     public static User mapToUser(UserDto userDto) {
-        return new User(
-          userDto.getId(),
-          userDto.getName(),
-          userDto.getEmail()
-        );
+        User user = new User();
+        user.setId(userDto.getId());
+        user.setName(userDto.getName());
+        user.setEmail(userDto.getEmail());
+        return user;
     }
 
     public static UserDto mapToUserDto(User user) {
