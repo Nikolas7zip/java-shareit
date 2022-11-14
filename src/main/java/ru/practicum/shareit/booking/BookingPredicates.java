@@ -30,10 +30,9 @@ public class BookingPredicates {
         };
     }
 
-    public static List<Booking> filterBookings(List<Booking> bookings, Predicate<Booking> predicate)
-    {
+    public static List<Booking> filterBookings(List<Booking> bookings, Predicate<Booking> predicate) {
         return bookings.stream()
-                .filter( predicate )
+                .filter(predicate)
                 .collect(Collectors.toList());
     }
 }

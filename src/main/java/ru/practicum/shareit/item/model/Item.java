@@ -8,7 +8,9 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "items")
-@Getter @Setter @ToString
+@Getter
+@Setter
+@ToString
 public class Item {
 
     @Id
@@ -21,7 +23,7 @@ public class Item {
 
     private boolean available;
 
-    @Column(name="owner_id")
+    @Column(name = "owner_id")
     private Long ownerId;
 
     @Override
