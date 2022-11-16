@@ -7,8 +7,8 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query(" select new ru.practicum.shareit.item.comment.CommentOutput(c.id, c.text, c.author.name, c.created) " +
-            "from Comment c " +
-            "where c.itemId=?1")
+    @Query(" SELECT new ru.practicum.shareit.item.comment.CommentOutput(c.id, c.text, c.author.name, c.created) " +
+            "FROM Comment c " +
+            "WHERE c.itemId=?1")
     List<CommentOutput> findItemComments(Long itemId);
 }

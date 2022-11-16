@@ -21,9 +21,10 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "text", columnDefinition = "TEXT", nullable = false)
     private String text;
 
-    @Column(name = "item_id")
+    @Column(name = "item_id", nullable = false)
     private Long itemId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,6 +32,7 @@ public class Comment {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User author;
 
+    @Column(name = "created", nullable = false)
     private LocalDateTime created = LocalDateTime.now();
 
     @Override

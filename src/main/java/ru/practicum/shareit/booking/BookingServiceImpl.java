@@ -17,7 +17,8 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import static ru.practicum.shareit.booking.BookingPredicates.*;
+import static ru.practicum.shareit.booking.BookingStatus.*;
+
 
 @Slf4j
 @Service
@@ -44,9 +45,12 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findById(bookingDto.getItemId())
                                   .orElseThrow(() -> new EntityNotFoundException(Item.class, bookingDto.getItemId()));
         Booking booking = BookingMapper.mapToNewBooking(bookingDto, booker, item);
-        validateBooking(booking);
+        throwIfBookingIsNotValid(booking);
 
-        return BookingMapper.mapToBookingOutput(bookingRepository.save(booking));
+        Booking bookingDb = bookingRepository.save(booking);
+        log.info("Created " + bookingDb);
+        
+        return BookingMapper.mapToBookingOutput(bookingDb);
     }
 
     @Transactional
@@ -56,12 +60,14 @@ public class BookingServiceImpl implements BookingService {
                                            .orElseThrow(() -> new EntityNotFoundException(Booking.class, bookingId));
         if (!booking.getItem().getOwnerId().equals(ownerId)) {
             throw new EntityNotFoundException(Booking.class, bookingId);
-        } else if (booking.getStatus() != BookingStatus.WAITING) {
+        } else if (booking.getStatus() != WAITING) {
             throw new BadRequestException("Can't change booking status");
         }
-        booking.setStatus(isApproved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+        booking.setStatus(isApproved ? APPROVED : REJECTED);
+        Booking bookingUpdated = bookingRepository.save(booking);
+        log.info("Updated with status " + bookingUpdated);
 
-        return BookingMapper.mapToBookingOutput(bookingRepository.save(booking));
+        return BookingMapper.mapToBookingOutput(bookingUpdated);
     }
 
     @Override
@@ -78,20 +84,16 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingOutput> getByBooker(Long bookerId, String state) {
         QueryBookingState stateFromQuery = parseQueryBookingState(state);
         userRepository.findById(bookerId).orElseThrow(() -> new EntityNotFoundException(User.class, bookerId));
-        Sort sortDateDesc = Sort.by("start").descending();
-        List<Booking> bookings = bookingRepository.findAllByBooker_Id(bookerId, sortDateDesc);
 
-        return filterBookingsByState(bookings, stateFromQuery);
+        return findBookingsByBooker(bookerId, stateFromQuery);
     }
 
     @Override
     public List<BookingOutput> getByOwnerItems(Long ownerId, String state) {
         QueryBookingState stateFromQuery = parseQueryBookingState(state);
         userRepository.findById(ownerId).orElseThrow(() -> new EntityNotFoundException(User.class, ownerId));
-        Sort sortDateDesc = Sort.by("start").descending();
-        List<Booking> bookings = bookingRepository.findAllByItem_OwnerId(ownerId, sortDateDesc);
 
-        return filterBookingsByState(bookings, stateFromQuery);
+        return findBookingsOfOwnerItems(ownerId, stateFromQuery);
     }
 
     private QueryBookingState parseQueryBookingState(String state) {
@@ -102,24 +104,27 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private List<BookingOutput> filterBookingsByState(List<Booking> bookings, QueryBookingState state) {
+    private List<BookingOutput> findBookingsByBooker(Long bookerId, QueryBookingState state) {
+        Sort sortDateDesc = Sort.by("start").descending();
+        List<Booking> bookings;
         switch (state) {
             case ALL:
+                bookings = bookingRepository.findAllByBooker_Id(bookerId, sortDateDesc);
                 break;
             case WAITING:
-                bookings = filterBookings(bookings, isWaiting());
+                bookings = bookingRepository.findAllByBooker_IdAndStatus(bookerId, WAITING, sortDateDesc);
                 break;
             case REJECTED:
-                bookings = filterBookings(bookings, isRejected());
+                bookings = bookingRepository.findAllByBooker_IdAndStatus(bookerId, REJECTED, sortDateDesc);
                 break;
             case PAST:
-                bookings = filterBookings(bookings, isPast());
+                bookings = bookingRepository.findAllByBooker_IdAndEndBefore(bookerId, LocalDateTime.now(), sortDateDesc);
                 break;
             case FUTURE:
-                bookings = filterBookings(bookings, isFuture());
+                bookings = bookingRepository.findAllByBooker_IdAndStartAfter(bookerId, LocalDateTime.now(), sortDateDesc);
                 break;
             case CURRENT:
-                bookings = filterBookings(bookings, isCurrent());
+                bookings = bookingRepository.findAllCurrentBookingsByBookerId(bookerId, LocalDateTime.now());
                 break;
             default:
                 bookings = Collections.emptyList();
@@ -127,7 +132,35 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.mapToBookingOutput(bookings);
     }
 
-    private void validateBooking(Booking booking) {
+    private List<BookingOutput> findBookingsOfOwnerItems(Long ownerId, QueryBookingState state) {
+        Sort sortDateDesc = Sort.by("start").descending();
+        List<Booking> bookings;
+        switch (state) {
+            case ALL:
+                bookings = bookingRepository.findAllByItem_OwnerId(ownerId, sortDateDesc);;
+                break;
+            case WAITING:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStatus(ownerId, WAITING, sortDateDesc);
+                break;
+            case REJECTED:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStatus(ownerId, REJECTED, sortDateDesc);
+                break;
+            case PAST:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndEndBefore(ownerId, LocalDateTime.now(), sortDateDesc);
+                break;
+            case FUTURE:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStartAfter(ownerId, LocalDateTime.now(), sortDateDesc);
+                break;
+            case CURRENT:
+                bookings = bookingRepository.findAllCurrentBookingsByOwnerItems(ownerId, LocalDateTime.now());
+                break;
+            default:
+                bookings = Collections.emptyList();
+        }
+        return BookingMapper.mapToBookingOutput(bookings);
+    }
+
+    private void throwIfBookingIsNotValid(Booking booking) {
         LocalDateTime allowedStartOfBooking = LocalDateTime.now().minusMinutes(1);
         LocalDateTime start = booking.getStart();
         LocalDateTime end = booking.getEnd();
