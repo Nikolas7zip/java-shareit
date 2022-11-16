@@ -17,6 +17,7 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+
 import static ru.practicum.shareit.booking.BookingStatus.*;
 
 
@@ -41,15 +42,14 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingOutput create(Long bookerId, BookingDto bookingDto) {
         User booker = userRepository.findById(bookerId)
-                                    .orElseThrow(() -> new EntityNotFoundException(User.class, bookerId));
+                .orElseThrow(() -> new EntityNotFoundException(User.class, bookerId));
         Item item = itemRepository.findById(bookingDto.getItemId())
-                                  .orElseThrow(() -> new EntityNotFoundException(Item.class, bookingDto.getItemId()));
+                .orElseThrow(() -> new EntityNotFoundException(Item.class, bookingDto.getItemId()));
         Booking booking = BookingMapper.mapToNewBooking(bookingDto, booker, item);
         throwIfBookingIsNotValid(booking);
-
         Booking bookingDb = bookingRepository.save(booking);
         log.info("Created " + bookingDb);
-        
+
         return BookingMapper.mapToBookingOutput(bookingDb);
     }
 
@@ -57,7 +57,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingOutput changeStatus(Long ownerId, Long bookingId, boolean isApproved) {
         Booking booking = bookingRepository.findById(bookingId)
-                                           .orElseThrow(() -> new EntityNotFoundException(Booking.class, bookingId));
+                .orElseThrow(() -> new EntityNotFoundException(Booking.class, bookingId));
         if (!booking.getItem().getOwnerId().equals(ownerId)) {
             throw new EntityNotFoundException(Booking.class, bookingId);
         } else if (booking.getStatus() != WAITING) {
@@ -73,7 +73,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingOutput get(Long userId, Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
-                                            .orElseThrow(() -> new EntityNotFoundException(Booking.class, bookingId));
+                .orElseThrow(() -> new EntityNotFoundException(Booking.class, bookingId));
         if (booking.getBooker().getId().equals(userId) || booking.getItem().getOwnerId().equals(userId)) {
             return BookingMapper.mapToBookingOutput(booking);
         }
@@ -137,7 +137,7 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings;
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByItem_OwnerId(ownerId, sortDateDesc);;
+                bookings = bookingRepository.findAllByItem_OwnerId(ownerId, sortDateDesc);
                 break;
             case WAITING:
                 bookings = bookingRepository.findAllByItem_OwnerIdAndStatus(ownerId, WAITING, sortDateDesc);
