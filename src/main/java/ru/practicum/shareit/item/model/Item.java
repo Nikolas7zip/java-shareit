@@ -29,6 +29,9 @@ public class Item {
     @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
+    @Column(name = "request_id", nullable = true)
+    private Long requestId;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

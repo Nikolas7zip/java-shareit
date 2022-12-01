@@ -28,9 +28,9 @@ public class ErrorHandler {
         return new ErrorResponse("Validation failed", details);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(value = {BadRequestException.class, IllegalArgumentException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleBadRequestException(final BadRequestException ex) {
+    public ErrorResponse handleBadRequestException(final RuntimeException ex) {
         log.warn("BadRequestException: " + ex.getMessage());
 
         return new ErrorResponse(ex.getMessage());

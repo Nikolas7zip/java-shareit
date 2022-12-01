@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.dto.BookingShort;
@@ -12,7 +11,6 @@ import java.util.List;
 
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class ItemDto {
     private Long id;
@@ -26,9 +24,18 @@ public class ItemDto {
     @NotNull(message = "Item available should not be null")
     private Boolean available;
 
+    private Long requestId;
+
     private BookingShort lastBooking;
 
     private BookingShort nextBooking;
 
     private List<CommentOutput> comments;
+
+    public ItemDto(Long id, String name, String description, Boolean available) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.available = available;
+    }
 }

@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingOutput;
+import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.pagination.EntityPagination;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -30,7 +32,7 @@ public class BookingController {
     public BookingOutput changeBookingStatus(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
                                              @PathVariable Long bookingId,
                                              @RequestParam boolean approved) {
-        return  bookingService.changeStatus(userId, bookingId, approved);
+        return bookingService.changeStatus(userId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")
@@ -40,16 +42,32 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<BookingOutput> getUserBookings(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-                                               @RequestParam(value = "state", required = false, defaultValue = "ALL")
-                                                  String state) {
-        return bookingService.getByBooker(userId, state);
+    public List<BookingOutput> getUserBookings(
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
+            @RequestParam(required = false, defaultValue = "ALL") String state,
+            @RequestParam(required = false, defaultValue = "0") int from,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+        QueryBookingState stateFromQuery = convert(state);
+        EntityPagination pagination = new EntityPagination(from, size);
+        return bookingService.getByBooker(userId, stateFromQuery, pagination);
     }
 
     @GetMapping("/owner")
-    public List<BookingOutput> getBookingsOfOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-                                                       @RequestParam(value = "state", required = false, defaultValue = "ALL")
-                                                    String state) {
-        return bookingService.getByOwnerItems(userId, state);
+    public List<BookingOutput> getBookingsOfOwnerItems(
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
+            @RequestParam(required = false, defaultValue = "ALL") String state,
+            @RequestParam(required = false, defaultValue = "0") int from,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+        QueryBookingState stateFromQuery = convert(state);
+        EntityPagination pagination = new EntityPagination(from, size);
+        return bookingService.getByOwnerItems(userId, stateFromQuery, pagination);
+    }
+
+    private QueryBookingState convert(String state) {
+        try {
+            return QueryBookingState.valueOf(state.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException("Unknown state: " + state);
+        }
     }
 }
