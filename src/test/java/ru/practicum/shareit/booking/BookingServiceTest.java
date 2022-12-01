@@ -113,7 +113,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void shouldThrowWhenWrongBookingDate() {;
+    void shouldThrowWhenWrongBookingDate() {
         BookingDto bookingDto = new BookingDto(1L, item.getId(), booking.getStart(), LocalDateTime.now().minusDays(1));
         when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(booker));
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
@@ -125,7 +125,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void shouldThrowWhenBookerIsOwnerItem() {;
+    void shouldThrowWhenBookerIsOwnerItem() {
         BookingDto bookingDto = new BookingDto(1L, item.getId(), booking.getStart(), LocalDateTime.now().minusDays(1));
         item.setOwnerId(booker.getId());
         when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(booker));

@@ -24,7 +24,6 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
