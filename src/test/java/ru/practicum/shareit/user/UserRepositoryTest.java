@@ -29,10 +29,10 @@ public class UserRepositoryTest {
     void shouldThrowWhenSaveUserWithSameMail() {
         User user1 = new User();
         user1.setName("Tester");
-        user1.setEmail("test@mail.com");
+        user1.setEmail("test_m@mail.com");
         User user2 = new User();
         user2.setName("Master");
-        user2.setEmail("test@mail.com");
+        user2.setEmail("test_m@mail.com");
 
         final Exception ex = Assertions.assertThrows(
                 Exception.class,
