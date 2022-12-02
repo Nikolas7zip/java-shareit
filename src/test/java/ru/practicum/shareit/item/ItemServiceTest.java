@@ -108,7 +108,7 @@ public class ItemServiceTest {
     }
 
     @Test
-    void shouldFindItem() {
+    void shouldFindItemForOwner() {
         when(mockUserRepository.existsById(anyLong())).thenReturn(true);
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
         when(mockBookingRepository.findNextBookings(anyLong(), any())).thenReturn(new ArrayList<>());
@@ -116,6 +116,17 @@ public class ItemServiceTest {
         when(mockCommentRepository.findItemComments(anyLong())).thenReturn(null);
 
         ItemDto findItem = itemService.get(user.getId(), itemDto.getId());
+
+        assertEquals(itemDto, findItem);
+    }
+
+    @Test
+    void shouldFindItemForOther() {
+        when(mockUserRepository.existsById(anyLong())).thenReturn(true);
+        when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(mockCommentRepository.findItemComments(anyLong())).thenReturn(null);
+
+        ItemDto findItem = itemService.get(2L, itemDto.getId());
 
         assertEquals(itemDto, findItem);
     }
@@ -209,6 +220,16 @@ public class ItemServiceTest {
 
         ItemDto updatedItem = itemService.update(user.getId(), requestItemDto);
         assertEquals(requestItemDto, updatedItem);
+    }
+
+    @Test
+    void shouldUpdateItemWithoutChanges() {
+        ItemDto requestItemDto = new ItemDto(1L, null, null, null);
+        when(mockItemRepository.findByIdAndOwnerId(anyLong(), anyLong())).thenReturn(Optional.of(item));
+        when(mockItemRepository.save(any())).thenReturn(item);
+
+        ItemDto updatedItem = itemService.update(user.getId(), requestItemDto);
+        assertEquals(itemDto, updatedItem);
     }
 
     @Test

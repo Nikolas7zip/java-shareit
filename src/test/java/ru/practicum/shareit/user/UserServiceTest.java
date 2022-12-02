@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -72,7 +73,7 @@ public class UserServiceTest {
 
     @Test
     void shouldUpdateUser() {
-        UserDto requestUserDto = new UserDto(1L, "Tester", "tester_new@mail.com");
+        UserDto requestUserDto = new UserDto(1L, "Tester New", "tester_new@mail.com");
         User savedUser = new User();
         savedUser.setId(requestUserDto.getId());
         savedUser.setName(requestUserDto.getName());
@@ -85,4 +86,22 @@ public class UserServiceTest {
         UserDto updatedUser = userService.update(requestUserDto);
         assertEquals(requestUserDto, updatedUser);
     }
+
+    @Test
+    void shouldUpdateUserWithoutChanges() {
+        when(mockUserRepository.findById(anyLong()))
+                .thenReturn(Optional.of(user));
+        when(mockUserRepository.save(any()))
+                .thenReturn(user);
+        UserDto updatedUser = userService.update(userDto);
+        assertEquals(userDto, updatedUser);
+    }
+
+    @Test
+    void shouldDeleteUser() {
+        Mockito.doNothing().when(mockUserRepository).deleteById(anyLong());
+
+        userService.delete(2L);
+    }
+
 }
