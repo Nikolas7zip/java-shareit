@@ -99,7 +99,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private List<BookingOutput> findBookingsByBooker(Long bookerId, QueryBookingState state, Pageable pageable) {
-        Page<Booking> page;
+        Page<Booking> page = Page.empty();
         switch (state) {
             case ALL:
                 page = bookingRepository.findAllByBooker_Id(bookerId, pageable);
@@ -119,14 +119,12 @@ public class BookingServiceImpl implements BookingService {
             case CURRENT:
                 page = bookingRepository.findAllCurrentBookingsByBookerId(bookerId, LocalDateTime.now(), pageable);
                 break;
-            default:
-                return Collections.emptyList();
         }
         return BookingMapper.mapToBookingOutput(page.getContent());
     }
 
     private List<BookingOutput> findBookingsOfOwnerItems(Long ownerId, QueryBookingState state, Pageable pageable) {
-        Page<Booking> page;
+        Page<Booking> page = Page.empty();
         switch (state) {
             case ALL:
                 page = bookingRepository.findAllByItem_OwnerId(ownerId, pageable);
@@ -146,8 +144,6 @@ public class BookingServiceImpl implements BookingService {
             case CURRENT:
                 page = bookingRepository.findAllCurrentBookingsByOwnerItems(ownerId, LocalDateTime.now(), pageable);
                 break;
-            default:
-                return Collections.emptyList();
         }
         return BookingMapper.mapToBookingOutput(page.getContent());
     }

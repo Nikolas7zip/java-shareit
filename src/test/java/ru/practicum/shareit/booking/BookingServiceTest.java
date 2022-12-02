@@ -143,13 +143,13 @@ public class BookingServiceTest {
 
     @Test
     void shouldThrowWhenBookerIsOwnerItem() {
-        BookingDto bookingDto = new BookingDto(1L, item.getId(), booking.getStart(), LocalDateTime.now().minusDays(1));
+        BookingDto bookingDto = new BookingDto(1L, item.getId(), booking.getStart(), booking.getEnd());
         item.setOwnerId(booker.getId());
         when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(booker));
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
 
-        final BadRequestException exception = assertThrows(
-                BadRequestException.class,
+        final EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
                 () -> bookingService.create(booker.getId(), bookingDto)
         );
     }
