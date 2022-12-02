@@ -7,7 +7,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import ru.practicum.shareit.exception.EntityNotFoundException;
+import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.pagination.EntityPagination;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.user.UserRepository;
@@ -98,6 +100,43 @@ public class ItemRequestServiceTest {
 
         List<ItemRequestDto> requestDtos = requestService.getByRequester(requester.getId());
         assertEquals(List.of(requestDto), requestDtos);
+    }
+
+    @Test
+    void shouldThrowWhenRequesterNotFound() {
+        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        final EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> requestService.getByRequester(10L)
+        );
+    }
+
+    @Test
+    void shouldFindRequestWithItems() {
+        ItemRequest requestTool = new ItemRequest();
+        requestTool.setId(4L);
+        requestTool.setDescription("Что-то для сельскохозяйственных работ");
+        requestTool.setCreated(LocalDateTime.now().withNano(0));
+        requestTool.setRequesterId(requester.getId());
+
+        Item itemOnRequest = new Item();
+        itemOnRequest.setId(6L);
+        itemOnRequest.setName("Вроде лопата");
+        itemOnRequest.setDescription("Лопату ннада?");
+        itemOnRequest.setAvailable(true);
+        itemOnRequest.setRequestId(requestTool.getId());
+
+        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(requester));
+        when(mockRequestRepository.findAllByRequesterId(anyLong(), any())).thenReturn(List.of(requestTool));
+        when(mockItemRepository.findAllByRequestIdIn(any())).thenReturn(List.of(itemOnRequest));
+
+        List<ItemRequestDto> requestDtos = requestService.getByRequester(requester.getId());
+        ItemRequestDto expectedRequest = new ItemRequestDto(requestTool.getId(), requestTool.getDescription(),
+                requestTool.getCreated(), ItemMapper.mapToItemDto(List.of(itemOnRequest)));
+
+        assertEquals(List.of(expectedRequest), requestDtos);
+
     }
 
     @Test

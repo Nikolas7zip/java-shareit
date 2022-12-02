@@ -125,6 +125,23 @@ public class BookingServiceTest {
     }
 
     @Test
+    void shouldThrowWhenBookingIntersection() {
+        Booking anotherBooking = new Booking();
+        anotherBooking.setId(15L);
+        anotherBooking.setStatus(BookingStatus.APPROVED);
+
+        BookingDto bookingDto = new BookingDto(1L, item.getId(), booking.getStart(), booking.getEnd());
+        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(booker));
+        when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(mockBookingRepository.findApprovedIntersection(anyLong(), any(), any())).thenReturn(List.of(anotherBooking));
+
+        final BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> bookingService.create(booker.getId(), bookingDto)
+        );
+    }
+
+    @Test
     void shouldThrowWhenBookerIsOwnerItem() {
         BookingDto bookingDto = new BookingDto(1L, item.getId(), booking.getStart(), LocalDateTime.now().minusDays(1));
         item.setOwnerId(booker.getId());
@@ -182,6 +199,16 @@ public class BookingServiceTest {
 
         BookingOutput bookingOutput = bookingService.get(booker.getId(),booking.getId());
         assertEquals(expectedBooking, bookingOutput);
+    }
+
+    @Test
+    void shouldThrowWhenUserNotFound() {
+        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        final EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> bookingService.getByBooker(99L, QueryBookingState.ALL, null)
+        );
     }
 
     @Test

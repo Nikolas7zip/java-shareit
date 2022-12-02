@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.booking.dto.BookingShort;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.comment.Comment;
@@ -120,6 +121,26 @@ public class ItemServiceTest {
     }
 
     @Test
+    void shouldFindAllOwnerItemsWithBookings() {
+        List<Item> itemList = List.of(item);
+        Page<Item> itemPage = new PageImpl<>(itemList);
+        when(mockUserRepository.existsById(anyLong())).thenReturn(true);
+        when(mockItemRepository.findAllByOwnerId(anyLong(), any())).thenReturn(itemPage);
+        BookingShort nextBooking = new BookingShort(20L, 2L);
+        BookingShort lastBooking = new BookingShort(18L, 2L);
+        when(mockBookingRepository.findNextBookings(anyLong(), any())).thenReturn(List.of(nextBooking));
+        when(mockBookingRepository.findLastBookings(anyLong(), any())).thenReturn(List.of(lastBooking));
+        when(mockCommentRepository.findItemComments(anyLong())).thenReturn(null);
+
+        List<ItemDto> findItems = itemService.getByOwner(user.getId(), new EntityPagination(0, 10));
+        ItemDto copyItemDto = new ItemDto(1L, "Лопата", "Лопата для огорода", true);
+        copyItemDto.setNextBooking(nextBooking);
+        copyItemDto.setLastBooking(lastBooking);
+
+        assertEquals(List.of(copyItemDto), findItems);
+    }
+
+    @Test
     void shouldFindAllOwnerItems() {
         List<Item> itemList = List.of(item);
         Page<Item> itemPage = new PageImpl<>(itemList);
@@ -158,6 +179,15 @@ public class ItemServiceTest {
     }
 
     @Test
+    void shouldThrowWhenUserNotFound() {
+        when(mockUserRepository.existsById(anyLong())).thenReturn(false);
+
+        final EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> itemService.get(-1L, itemDto.getId()));
+    }
+
+    @Test
     void shouldThrowWhenNotFoundItem() {
         when(mockUserRepository.existsById(anyLong())).thenReturn(true);
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.empty());
@@ -169,7 +199,8 @@ public class ItemServiceTest {
 
     @Test
     void shouldUpdateItem() {
-        ItemDto requestItemDto = new ItemDto(1L, "Лопата", "Универсальная лопата", false);
+        ItemDto requestItemDto = new ItemDto(1L, "Лопата X", "Универсальная лопата", false);
+        item.setName(requestItemDto.getName());
         item.setDescription(requestItemDto.getDescription());
         item.setAvailable(requestItemDto.getAvailable());
 
@@ -209,6 +240,17 @@ public class ItemServiceTest {
         CommentOutput expectedComment = new CommentOutput(1L, commentDto.getText(), user.getName(), comment.getCreated());
         CommentOutput createdComment = itemService.createComment(user.getId(), item.getId(), commentDto);
         assertEquals(expectedComment, createdComment);
+    }
+
+    @Test
+    void shouldThrowWhenCreateCommentNotExpiredBooking() {
+        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(mockBookingRepository.findExpiredApprovedBookings(anyLong(), anyLong(), any()))
+                .thenReturn(new ArrayList<>());
+
+        final BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> itemService.createComment(user.getId(), item.getId(), null));
     }
 
     @Test
