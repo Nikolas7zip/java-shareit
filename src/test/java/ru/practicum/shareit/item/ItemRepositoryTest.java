@@ -67,5 +67,6 @@ public class ItemRepositoryTest {
         Assertions.assertEquals(2, items.size());
         Assertions.assertEquals(savedItem1.getId(), items.get(0).getId());
         Assertions.assertEquals(savedItem3.getId(), items.get(1).getId());
+        Assertions.assertTrue(savedItem1.equals(items.get(0)));
     }
 }

@@ -103,6 +103,15 @@ public class ItemRequestServiceTest {
     }
 
     @Test
+    void shouldReturnEmptyRequests() {
+        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(requester));
+        when(mockRequestRepository.findAllByRequesterId(anyLong(), any())).thenReturn(new ArrayList<>());
+
+        List<ItemRequestDto> requestDtos = requestService.getByRequester(requester.getId());
+        assertTrue(requestDtos.isEmpty());
+    }
+
+    @Test
     void shouldThrowWhenRequesterNotFound() {
         when(mockUserRepository.findById(anyLong())).thenReturn(Optional.empty());
 

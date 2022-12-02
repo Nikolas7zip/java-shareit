@@ -45,7 +45,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional
     @Override
     public ItemRequestDto create(Long userId, ItemRequestDto requestDto) {
-        userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(User.class, userId));
+        throwIfUserNotFound(userId);
 
         ItemRequest request = requestRepository.save(ItemRequestMapper.mapToNewRequest(requestDto, userId));
         log.info("Created " + request);
@@ -55,7 +55,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequestDto get(Long userId, Long id) {
-        userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(User.class, userId));
+        throwIfUserNotFound(userId);
 
         ItemRequest request = requestRepository.findById(id)
                                                 .orElseThrow(() -> new EntityNotFoundException(ItemRequest.class, id));
@@ -67,7 +67,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getByRequester(Long userId) {
-        userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(User.class, userId));
+        throwIfUserNotFound(userId);
+
         List<ItemRequest> requests = requestRepository.findAllByRequesterId(userId, Sort.by("created").descending());
         List<ItemRequestDto> dtos = ItemRequestMapper.mapToRequestDto(requests);
         fillRequestsDtoWithItemsData(dtos);
@@ -76,7 +77,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getOfOtherUsers(Long userId, EntityPagination pagination) {
-        userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(User.class, userId));
+        throwIfUserNotFound(userId);
+
         Pageable sortPage = PageRequest.of(pagination.getPage(), pagination.getSize(), Sort.by("created").descending());
         Page<ItemRequest> page = requestRepository.findByRequesterIdNot(userId, sortPage);
         List<ItemRequestDto> dtos = ItemRequestMapper.mapToRequestDto(page.getContent());
@@ -95,6 +97,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 dtos.get(mapRequestSearch.get(requestId)).getItems().add(itemDto);
             }
         }
+    }
+
+    private void throwIfUserNotFound(Long userId) {
+        userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(User.class, userId));
     }
 
 }
