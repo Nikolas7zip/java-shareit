@@ -27,7 +27,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindAllRequesterBookings() {
         List<BookingOutput> bookingOutputs = bookingService.getByBooker(bookerId, QueryBookingState.ALL,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(4, bookingOutputs.size());
     }
@@ -35,7 +35,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindPastRequesterBookings() {
         List<BookingOutput> bookingOutputs = bookingService.getByBooker(bookerId, QueryBookingState.PAST,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(1, bookingOutputs.size());
     }
@@ -43,7 +43,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindCurrentRequesterBookings() {
         List<BookingOutput> bookingOutputs = bookingService.getByBooker(bookerId, QueryBookingState.CURRENT,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(2, bookingOutputs.size());
     }
@@ -51,7 +51,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindFutureRequesterBookings() {
         List<BookingOutput> bookingOutputs = bookingService.getByBooker(bookerId, QueryBookingState.FUTURE,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(1, bookingOutputs.size());
     }
@@ -59,7 +59,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindWaitingRequesterBookings() {
         List<BookingOutput> bookingOutputs = bookingService.getByBooker(bookerId, QueryBookingState.WAITING,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(1, bookingOutputs.size());
     }
@@ -67,7 +67,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindRejectedRequesterBookings() {
         List<BookingOutput> bookingOutputs = bookingService.getByBooker(bookerId, QueryBookingState.REJECTED,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(1, bookingOutputs.size());
     }
@@ -75,7 +75,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindAllBookingsOfOwnerItems() {
         List<BookingOutput> bookingOutputs = bookingService.getByOwnerItems(ownerId, QueryBookingState.ALL,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(4, bookingOutputs.size());
     }
@@ -83,7 +83,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindPastBookingsOfOwnerItems() {
         List<BookingOutput> bookingOutputs = bookingService.getByOwnerItems(ownerId, QueryBookingState.PAST,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(1, bookingOutputs.size());
     }
@@ -91,7 +91,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindCurrentBookingsOfOwnerItems() {
         List<BookingOutput> bookingOutputs = bookingService.getByOwnerItems(ownerId, QueryBookingState.CURRENT,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(2, bookingOutputs.size());
     }
@@ -99,7 +99,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindFutureBookingsOfOwnerItems() {
         List<BookingOutput> bookingOutputs = bookingService.getByOwnerItems(ownerId, QueryBookingState.FUTURE,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(1, bookingOutputs.size());
     }
@@ -107,7 +107,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindWaitingBookingsOfOwnerItems() {
         List<BookingOutput> bookingOutputs = bookingService.getByOwnerItems(ownerId, QueryBookingState.WAITING,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(1, bookingOutputs.size());
     }
@@ -115,7 +115,7 @@ public class BookingServiceIntegrationTest {
     @Test
     void shouldFindRejectedBookingsOfOwnerItems() {
         List<BookingOutput> bookingOutputs = bookingService.getByOwnerItems(ownerId, QueryBookingState.REJECTED,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         Assertions.assertEquals(1, bookingOutputs.size());
     }

@@ -227,7 +227,7 @@ public class BookingServiceTest {
         when(mockBookingRepository.findAllByBooker_Id(anyLong(), any())).thenReturn(new PageImpl<>(List.of(booking)));
 
         List<BookingOutput> bookingOutputs = bookingService.getByBooker(booker.getId(), QueryBookingState.ALL,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         assertEquals(List.of(expectedBooking), bookingOutputs);
     }
@@ -242,7 +242,7 @@ public class BookingServiceTest {
         when(mockBookingRepository.findAllByItem_OwnerId(anyLong(), any())).thenReturn(new PageImpl<>(List.of(booking)));
 
         List<BookingOutput> bookingOutputs = bookingService.getByOwnerItems(owner.getId(), QueryBookingState.ALL,
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         assertEquals(List.of(expectedBooking), bookingOutputs);
     }

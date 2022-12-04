@@ -160,7 +160,7 @@ public class ItemRequestServiceTest {
         when(mockItemRepository.findAllByRequestIdIn(any())).thenReturn(new ArrayList<>());
 
         List<ItemRequestDto> requestDtos = requestService.getOfOtherUsers(userWithInterest.getId(),
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
         assertEquals(List.of(requestDto), requestDtos);
     }
 }

@@ -48,8 +48,7 @@ public class BookingController {
             @RequestParam(required = false, defaultValue = "0") int from,
             @RequestParam(required = false, defaultValue = "10") int size) {
         QueryBookingState stateFromQuery = convert(state);
-        EntityPagination pagination = new EntityPagination(from, size);
-        return bookingService.getByBooker(userId, stateFromQuery, pagination);
+        return bookingService.getByBooker(userId, stateFromQuery, EntityPagination.of(from, size));
     }
 
     @GetMapping("/owner")
@@ -59,8 +58,7 @@ public class BookingController {
             @RequestParam(required = false, defaultValue = "0") int from,
             @RequestParam(required = false, defaultValue = "10") int size) {
         QueryBookingState stateFromQuery = convert(state);
-        EntityPagination pagination = new EntityPagination(from, size);
-        return bookingService.getByOwnerItems(userId, stateFromQuery, pagination);
+        return bookingService.getByOwnerItems(userId, stateFromQuery, EntityPagination.of(from, size));
     }
 
     private QueryBookingState convert(String state) {

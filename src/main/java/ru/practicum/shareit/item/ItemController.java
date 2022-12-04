@@ -33,8 +33,7 @@ public class ItemController {
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestParam(required = false, defaultValue = "0") int from,
             @RequestParam(required = false, defaultValue = "10") int size) {
-        EntityPagination pagination = new EntityPagination(from, size);
-        return itemService.getByOwner(userId, pagination);
+        return itemService.getByOwner(userId, EntityPagination.of(from, size));
     }
 
     @PostMapping
@@ -65,8 +64,7 @@ public class ItemController {
             @RequestParam String text,
             @RequestParam(required = false, defaultValue = "0") int from,
             @RequestParam(required = false, defaultValue = "10") int size) {
-        EntityPagination pagination = new EntityPagination(from, size);
-        return itemService.getAvailableToRentByText(userId, text.toLowerCase(), pagination);
+        return itemService.getAvailableToRentByText(userId, text.toLowerCase(), EntityPagination.of(from, size));
     }
 
 }

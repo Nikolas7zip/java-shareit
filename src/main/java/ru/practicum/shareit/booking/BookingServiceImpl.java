@@ -77,10 +77,10 @@ public class BookingServiceImpl implements BookingService {
     public BookingOutput get(Long userId, Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException(Booking.class, bookingId));
-        if (booking.getBooker().getId().equals(userId) || booking.getItem().getOwnerId().equals(userId)) {
-            return BookingMapper.mapToBookingOutput(booking);
+        if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwnerId().equals(userId)) {
+            throw new EntityNotFoundException(Booking.class, bookingId);
         }
-        throw new EntityNotFoundException(Booking.class, bookingId);
+        return BookingMapper.mapToBookingOutput(booking);
     }
 
     @Override

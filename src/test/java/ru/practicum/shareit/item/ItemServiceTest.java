@@ -143,7 +143,7 @@ public class ItemServiceTest {
         when(mockBookingRepository.findLastBookings(anyLong(), any())).thenReturn(List.of(lastBooking));
         when(mockCommentRepository.findItemComments(anyLong())).thenReturn(null);
 
-        List<ItemDto> findItems = itemService.getByOwner(user.getId(), new EntityPagination(0, 10));
+        List<ItemDto> findItems = itemService.getByOwner(user.getId(), EntityPagination.of(0, 10));
         ItemDto copyItemDto = new ItemDto(1L, "Лопата", "Лопата для огорода", true);
         copyItemDto.setNextBooking(nextBooking);
         copyItemDto.setLastBooking(lastBooking);
@@ -161,7 +161,7 @@ public class ItemServiceTest {
         when(mockBookingRepository.findLastBookings(anyLong(), any())).thenReturn(new ArrayList<>());
         when(mockCommentRepository.findItemComments(anyLong())).thenReturn(null);
 
-        List<ItemDto> findItems = itemService.getByOwner(user.getId(), new EntityPagination(0, 10));
+        List<ItemDto> findItems = itemService.getByOwner(user.getId(), EntityPagination.of(0, 10));
 
         assertEquals(List.of(itemDto), findItems);
     }
@@ -174,7 +174,7 @@ public class ItemServiceTest {
         when(mockItemRepository.findAvailableToRentByText(anyString(), any())).thenReturn(itemPage);
 
         List<ItemDto> findItems = itemService.getAvailableToRentByText(user.getId(), "Лопата",
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         assertEquals(List.of(itemDto), findItems);
     }
@@ -184,7 +184,7 @@ public class ItemServiceTest {
         when(mockUserRepository.existsById(anyLong())).thenReturn(true);
 
         List<ItemDto> findItems = itemService.getAvailableToRentByText(user.getId(), "  ",
-                new EntityPagination(0, 10));
+                EntityPagination.of(0, 10));
 
         assertTrue(findItems.isEmpty());
     }

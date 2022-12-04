@@ -41,16 +41,4 @@ public class Booking {
     @Column(name = "status", length = 20, nullable = false)
     @Enumerated(EnumType.STRING)
     BookingStatus status;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Booking)) return false;
-        return id != null && id.equals(((Booking) o).getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

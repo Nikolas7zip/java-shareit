@@ -44,8 +44,7 @@ public class ItemRequestController {
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestParam(required = false, defaultValue = "0") int from,
             @RequestParam(required = false, defaultValue = "10") int size) {
-        EntityPagination pagination = new EntityPagination(from, size);
-        return requestService.getOfOtherUsers(userId, pagination);
+        return requestService.getOfOtherUsers(userId, EntityPagination.of(from, size));
     }
 
 }
