@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.comment.CommentDto;
 import ru.practicum.shareit.item.comment.CommentOutput;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.pagination.EntityPagination;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -28,8 +29,11 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> getOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId) {
-        return itemService.getByOwner(userId);
+    public List<ItemDto> getOwnerItems(
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
+            @RequestParam(required = false, defaultValue = "0") int from,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+        return itemService.getByOwner(userId, EntityPagination.of(from, size));
     }
 
     @PostMapping
@@ -55,9 +59,12 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> getItemsAvailableToRentByText(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-                                                       @RequestParam String text) {
-        return itemService.getAvailableToRentByText(userId, text.toLowerCase());
+    public List<ItemDto> getItemsAvailableToRentByText(
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
+            @RequestParam String text,
+            @RequestParam(required = false, defaultValue = "0") int from,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+        return itemService.getAvailableToRentByText(userId, text.toLowerCase(), EntityPagination.of(from, size));
     }
 
 }

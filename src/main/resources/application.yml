@@ -1,0 +1,25 @@
+db:
+  test:
+    name: shareit
+spring:
+  sql:
+    init:
+      mode: always
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL10Dialect
+        format_sql: true
+    hibernate:
+      ddl-auto: none
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:${db.test.name}
+    username: test
+    password: test
+
+#  datasource:
+#    driver-class-name: org.postgresql.Driver
+#    url: jdbc:postgresql://localhost:5432/shareit
+#    username: admin_shareit
+#    password: items42

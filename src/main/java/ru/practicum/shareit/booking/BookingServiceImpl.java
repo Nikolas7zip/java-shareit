@@ -2,6 +2,9 @@ package ru.practicum.shareit.booking;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,11 +14,11 @@ import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.pagination.EntityPagination;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static ru.practicum.shareit.booking.BookingStatus.*;
@@ -74,90 +77,74 @@ public class BookingServiceImpl implements BookingService {
     public BookingOutput get(Long userId, Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException(Booking.class, bookingId));
-        if (booking.getBooker().getId().equals(userId) || booking.getItem().getOwnerId().equals(userId)) {
-            return BookingMapper.mapToBookingOutput(booking);
+        if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwnerId().equals(userId)) {
+            throw new EntityNotFoundException(Booking.class, bookingId);
         }
-        throw new EntityNotFoundException(Booking.class, bookingId);
+        return BookingMapper.mapToBookingOutput(booking);
     }
 
     @Override
-    public List<BookingOutput> getByBooker(Long bookerId, String state) {
-        QueryBookingState stateFromQuery = parseQueryBookingState(state);
+    public List<BookingOutput> getByBooker(Long bookerId, QueryBookingState state, EntityPagination pagination) {
         userRepository.findById(bookerId).orElseThrow(() -> new EntityNotFoundException(User.class, bookerId));
-
-        return findBookingsByBooker(bookerId, stateFromQuery);
+        Pageable sortPage = PageRequest.of(pagination.getPage(), pagination.getSize(), Sort.by("start").descending());
+        return findBookingsByBooker(bookerId, state, sortPage);
     }
 
     @Override
-    public List<BookingOutput> getByOwnerItems(Long ownerId, String state) {
-        QueryBookingState stateFromQuery = parseQueryBookingState(state);
+    public List<BookingOutput> getByOwnerItems(Long ownerId, QueryBookingState state, EntityPagination pagination) {
         userRepository.findById(ownerId).orElseThrow(() -> new EntityNotFoundException(User.class, ownerId));
-
-        return findBookingsOfOwnerItems(ownerId, stateFromQuery);
+        Pageable sortPage = PageRequest.of(pagination.getPage(), pagination.getSize(), Sort.by("start").descending());
+        return findBookingsOfOwnerItems(ownerId, state, sortPage);
     }
 
-    private QueryBookingState parseQueryBookingState(String state) {
-        try {
-            return QueryBookingState.valueOf(state);
-        } catch (IllegalArgumentException ex) {
-            throw new BadRequestException("Unknown state: " + state);
-        }
-    }
-
-    private List<BookingOutput> findBookingsByBooker(Long bookerId, QueryBookingState state) {
-        Sort sortDateDesc = Sort.by("start").descending();
-        List<Booking> bookings;
+    private List<BookingOutput> findBookingsByBooker(Long bookerId, QueryBookingState state, Pageable pageable) {
+        Page<Booking> page = Page.empty();
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByBooker_Id(bookerId, sortDateDesc);
+                page = bookingRepository.findAllByBooker_Id(bookerId, pageable);
                 break;
             case WAITING:
-                bookings = bookingRepository.findAllByBooker_IdAndStatus(bookerId, WAITING, sortDateDesc);
+                page = bookingRepository.findAllByBooker_IdAndStatus(bookerId, WAITING, pageable);
                 break;
             case REJECTED:
-                bookings = bookingRepository.findAllByBooker_IdAndStatus(bookerId, REJECTED, sortDateDesc);
+                page = bookingRepository.findAllByBooker_IdAndStatus(bookerId, REJECTED, pageable);
                 break;
             case PAST:
-                bookings = bookingRepository.findAllByBooker_IdAndEndBefore(bookerId, LocalDateTime.now(), sortDateDesc);
+                page = bookingRepository.findAllByBooker_IdAndEndBefore(bookerId, LocalDateTime.now(), pageable);
                 break;
             case FUTURE:
-                bookings = bookingRepository.findAllByBooker_IdAndStartAfter(bookerId, LocalDateTime.now(), sortDateDesc);
+                page = bookingRepository.findAllByBooker_IdAndStartAfter(bookerId, LocalDateTime.now(), pageable);
                 break;
             case CURRENT:
-                bookings = bookingRepository.findAllCurrentBookingsByBookerId(bookerId, LocalDateTime.now());
+                page = bookingRepository.findAllCurrentBookingsByBookerId(bookerId, LocalDateTime.now(), pageable);
                 break;
-            default:
-                bookings = Collections.emptyList();
         }
-        return BookingMapper.mapToBookingOutput(bookings);
+        return BookingMapper.mapToBookingOutput(page.getContent());
     }
 
-    private List<BookingOutput> findBookingsOfOwnerItems(Long ownerId, QueryBookingState state) {
-        Sort sortDateDesc = Sort.by("start").descending();
-        List<Booking> bookings;
+    private List<BookingOutput> findBookingsOfOwnerItems(Long ownerId, QueryBookingState state, Pageable pageable) {
+        Page<Booking> page = Page.empty();
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByItem_OwnerId(ownerId, sortDateDesc);
+                page = bookingRepository.findAllByItem_OwnerId(ownerId, pageable);
                 break;
             case WAITING:
-                bookings = bookingRepository.findAllByItem_OwnerIdAndStatus(ownerId, WAITING, sortDateDesc);
+                page = bookingRepository.findAllByItem_OwnerIdAndStatus(ownerId, WAITING, pageable);
                 break;
             case REJECTED:
-                bookings = bookingRepository.findAllByItem_OwnerIdAndStatus(ownerId, REJECTED, sortDateDesc);
+                page = bookingRepository.findAllByItem_OwnerIdAndStatus(ownerId, REJECTED, pageable);
                 break;
             case PAST:
-                bookings = bookingRepository.findAllByItem_OwnerIdAndEndBefore(ownerId, LocalDateTime.now(), sortDateDesc);
+                page = bookingRepository.findAllByItem_OwnerIdAndEndBefore(ownerId, LocalDateTime.now(), pageable);
                 break;
             case FUTURE:
-                bookings = bookingRepository.findAllByItem_OwnerIdAndStartAfter(ownerId, LocalDateTime.now(), sortDateDesc);
+                page = bookingRepository.findAllByItem_OwnerIdAndStartAfter(ownerId, LocalDateTime.now(), pageable);
                 break;
             case CURRENT:
-                bookings = bookingRepository.findAllCurrentBookingsByOwnerItems(ownerId, LocalDateTime.now());
+                page = bookingRepository.findAllCurrentBookingsByOwnerItems(ownerId, LocalDateTime.now(), pageable);
                 break;
-            default:
-                bookings = Collections.emptyList();
         }
-        return BookingMapper.mapToBookingOutput(bookings);
+        return BookingMapper.mapToBookingOutput(page.getContent());
     }
 
     private void throwIfBookingIsNotValid(Booking booking) {

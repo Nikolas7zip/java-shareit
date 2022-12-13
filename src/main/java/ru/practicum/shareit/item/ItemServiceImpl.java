@@ -2,6 +2,10 @@ package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingRepository;
@@ -11,6 +15,9 @@ import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.comment.*;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.pagination.EntityPagination;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
@@ -26,16 +33,19 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository requestRepository;
 
     @Autowired
     public ItemServiceImpl(ItemRepository itemRepository,
                            UserRepository userRepository,
                            BookingRepository bookingRepository,
-                           CommentRepository commentRepository) {
+                           CommentRepository commentRepository,
+                           ItemRequestRepository requestRepository) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.requestRepository = requestRepository;
     }
 
     @Override
@@ -55,10 +65,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getByOwner(Long userId) {
+    public List<ItemDto> getByOwner(Long userId, EntityPagination pagination) {
         throwIfUserNotFound(userId);
-
-        List<ItemDto> dtos = ItemMapper.mapToItemDto(itemRepository.findAllByOwnerIdOrderById(userId));
+        Pageable sortPage = PageRequest.of(pagination.getPage(), pagination.getSize(), Sort.by("id").ascending());
+        Page<Item> page = itemRepository.findAllByOwnerId(userId, sortPage);
+        List<ItemDto> dtos = ItemMapper.mapToItemDto(page.getContent());
         for (ItemDto dto : dtos) {
             dto.setLastBooking(findLastItemBooking(dto.getId()));
             dto.setNextBooking(findNextItemBooking(dto.getId()));
@@ -69,20 +80,27 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getAvailableToRentByText(Long userId, String text) {
+    public List<ItemDto> getAvailableToRentByText(Long userId, String text, EntityPagination pagination) {
         throwIfUserNotFound(userId);
 
         if (text == null || text.isBlank()) {
             return Collections.emptyList();
         }
-
-        return ItemMapper.mapToItemDto(itemRepository.findAvailableToRentByText(text));
+        Pageable pageable = PageRequest.of(pagination.getPage(), pagination.getSize());
+        Page<Item> page = itemRepository.findAvailableToRentByText(text, pageable);
+        return ItemMapper.mapToItemDto(page.getContent());
     }
 
     @Transactional
     @Override
     public ItemDto create(Long userId, ItemDto itemDto) {
         throwIfUserNotFound(userId);
+
+        Long requestId = itemDto.getRequestId();
+        if (requestId != null) {
+            requestRepository.findById(requestId)
+                             .orElseThrow(() -> new EntityNotFoundException(ItemRequest.class, requestId));
+        }
 
         Item item = itemRepository.save(ItemMapper.mapToItem(itemDto, userId));
         log.info("Created " + item);
@@ -93,9 +111,10 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public ItemDto update(Long userId, ItemDto itemDto) {
-        throwIfUserIsNotItemOwner(userId, itemDto.getId());
+        Item item = itemRepository.findByIdAndOwnerId(itemDto.getId(), userId)
+                .orElseThrow(() -> new EntityNotFoundException(Item.class, itemDto.getId()));
 
-        ItemDto databaseItemDto = get(userId, itemDto.getId());
+        ItemDto databaseItemDto = ItemMapper.mapToItemDto(item);
         if (itemDto.getName() != null) {
             databaseItemDto.setName(itemDto.getName());
         }
@@ -131,12 +150,6 @@ public class ItemServiceImpl implements ItemService {
     private void throwIfUserNotFound(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new EntityNotFoundException(User.class, userId);
-        }
-    }
-
-    private void throwIfUserIsNotItemOwner(Long userId, Long itemId) {
-        if (itemRepository.findByIdAndOwnerId(itemId, userId).isEmpty()) {
-            throw new EntityNotFoundException(Item.class, itemId);
         }
     }
 
