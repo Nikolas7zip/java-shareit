@@ -48,7 +48,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDataIntegrityViolationException(final DataIntegrityViolationException ex) {
-        log.error("Error database, {}", ex.getMessage());
+        log.error("Error database, {}", ex.getMessage(), ex);
 
         return new ErrorResponse("Conflict with request");
     }
